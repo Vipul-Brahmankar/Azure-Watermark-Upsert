@@ -1,0 +1,17 @@
+{
+    "name": "ls_sql_bronze",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+            "server": "sql-src.database.windows.net",
+            "database": "sql_de_bronze",
+            "encrypt": "mandatory",
+            "trustServerCertificate": false,
+            "authenticationType": "SQL",
+            "userName": "<encryptedCredential>",
+            "encryptedCredential": "<encryptedCredential>"
+        }
+    }
+}
