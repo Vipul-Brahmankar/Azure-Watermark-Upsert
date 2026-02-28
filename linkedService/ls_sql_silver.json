@@ -1,0 +1,17 @@
+{
+    "name": "ls_sql_silver",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureSqlDatabase",
+        "typeProperties": {
+            "server": "sql-tar.database.windows.net",
+            "database": "sql_de_silver",
+            "encrypt": "mandatory",
+            "trustServerCertificate": false,
+            "authenticationType": "SQL",
+            "userName": "<encryptedCredential>",
+            "encryptedCredential": "<encryptedCredential>"
+        }
+    }
+}
