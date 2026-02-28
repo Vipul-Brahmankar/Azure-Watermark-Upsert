@@ -1,0 +1,291 @@
+{
+    "name": "pl_3_tosilver",
+    "properties": {
+        "activities": [
+            {
+                "name": "iter_toSilver",
+                "type": "ForEach",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@array(pipeline().parameters.TableList2)",
+                        "type": "Expression"
+                    },
+                    "isSequential": false,
+                    "batchCount": 5,
+                    "activities": [
+                        {
+                            "name": "Copy_toSilver",
+                            "type": "Copy",
+                            "dependsOn": [
+                                {
+                                    "activity": "getOldWM",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                {
+                                    "activity": "getNewWM",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                },
+                                {
+                                    "activity": "GetPrimaryKey",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "AzureSqlSource",
+                                    "sqlReaderQuery": {
+                                        "value": "SELECT * FROM [@{item().tableSchemaName}].[@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}]\nWHERE [LAST_UPDATED] > '@{formatDateTime(activity('getOldWM').output.firstRow.WatermarkValue, 'yyyy-MM-ddTHH:mm:ss')}' \nAND [LAST_UPDATED] <= '@{formatDateTime(activity('getNewWM').output.firstRow.NewWatermarkValue, 'yyyy-MM-ddTHH:mm:ss')}'\nAND [LAST_UPDATED] >= '@{formatDateTime(addToTime(utcNow(), -3, 'Week'), 'yyyy-MM-ddTHH:mm:ss')}'",
+                                        "type": "Expression"
+                                    },
+                                    "queryTimeout": "02:00:00",
+                                    "partitionOption": "None"
+                                },
+                                "sink": {
+                                    "type": "AzureSqlSink",
+                                    "preCopyScript": {
+                                        "value": "DELETE FROM [@{item().tableSchemaName}].[@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}] \nWHERE [LAST_UPDATED] < '@{formatDateTime(addToTime(utcNow(), -3, 'Week'), 'yyyy-MM-ddTHH:mm:ss')}'",
+                                        "type": "Expression"
+                                    },
+                                    "writeBehavior": "upsert",
+                                    "upsertSettings": {
+                                        "useTempDB": true,
+                                        "keys": {
+                                            "value": "@split(activity('GetPrimaryKey').output.firstRow.PK_Columns, ',')",
+                                            "type": "Expression"
+                                        }
+                                    },
+                                    "sqlWriterUseTableLock": false,
+                                    "disableMetricsCollection": false
+                                },
+                                "enableStaging": false,
+                                "translator": {
+                                    "type": "TabularTranslator",
+                                    "typeConversion": true,
+                                    "typeConversionSettings": {
+                                        "allowDataTruncation": true,
+                                        "treatBooleanAsNumber": false
+                                    }
+                                }
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "ds_sql_bronze",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "schemaName": {
+                                            "value": "@item().tableSchemaName",
+                                            "type": "Expression"
+                                        },
+                                        "tableName": {
+                                            "value": "@item().tableName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "ds_sql_toSilver",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "tableName": {
+                                            "value": "@item().tableName",
+                                            "type": "Expression"
+                                        },
+                                        "schemaName": {
+                                            "value": "@item().tableSchemaName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "getOldWM",
+                            "type": "Lookup",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "AzureSqlSource",
+                                    "sqlReaderQuery": {
+                                        "value": "SELECT WatermarkValue \nFROM [dbo].[watermarktable] \nWHERE TableName = '@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}';",
+                                        "type": "Expression"
+                                    },
+                                    "queryTimeout": "02:00:00",
+                                    "partitionOption": "None"
+                                },
+                                "dataset": {
+                                    "referenceName": "ds_sql_bronze",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "schemaName": {
+                                            "value": "@item().tableSchemaName",
+                                            "type": "Expression"
+                                        },
+                                        "tableName": {
+                                            "value": "@item().tableName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "getNewWM",
+                            "type": "Lookup",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "AzureSqlSource",
+                                    "sqlReaderQuery": {
+                                        "value": "SELECT MAX(LAST_UPDATED) AS NewWatermarkValue \nFROM [@{item().tableSchemaName}].[@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}];",
+                                        "type": "Expression"
+                                    },
+                                    "queryTimeout": "02:00:00",
+                                    "partitionOption": "None"
+                                },
+                                "dataset": {
+                                    "referenceName": "ds_sql_bronze",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "schemaName": {
+                                            "value": "@item().tableSchemaName",
+                                            "type": "Expression"
+                                        },
+                                        "tableName": {
+                                            "value": "@item().tableName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "GetPrimaryKey",
+                            "type": "Lookup",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "AzureSqlSource",
+                                    "sqlReaderQuery": {
+                                        "value": "SELECT STRING_AGG(COLUMN_NAME, ',') AS PK_Columns\nFROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE\nWHERE OBJECTPROPERTY(OBJECT_ID(QUOTENAME(CONSTRAINT_SCHEMA) + '.' + QUOTENAME(CONSTRAINT_NAME)), 'IsPrimaryKey') = 1\nAND TABLE_SCHEMA = '@{item().tableSchemaName}' \nAND TABLE_NAME = '@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}'",
+                                        "type": "Expression"
+                                    },
+                                    "queryTimeout": "02:00:00",
+                                    "partitionOption": "None"
+                                },
+                                "dataset": {
+                                    "referenceName": "ds_sql_bronze",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "schemaName": {
+                                            "value": "@item().tableSchemaName",
+                                            "type": "Expression"
+                                        },
+                                        "tableName": {
+                                            "value": "@item().tableName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "firstRowOnly": true
+                            }
+                        },
+                        {
+                            "name": "UpdateWaterMark",
+                            "type": "SqlServerStoredProcedure",
+                            "dependsOn": [
+                                {
+                                    "activity": "Copy_toSilver",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "storedProcedureName": "[dbo].[usp_write_watermark]",
+                                "storedProcedureParameters": {
+                                    "last_updated": {
+                                        "value": {
+                                            "value": "@activity('getNewWM').output.firstRow.NewWatermarkValue",
+                                            "type": "Expression"
+                                        },
+                                        "type": "DateTime"
+                                    },
+                                    "tableName": {
+                                        "value": {
+                                            "value": "@substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))",
+                                            "type": "Expression"
+                                        },
+                                        "type": "String"
+                                    }
+                                }
+                            },
+                            "linkedServiceName": {
+                                "referenceName": "ls_sql_bronze",
+                                "type": "LinkedServiceReference"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "TableList2": {
+                "type": "array",
+                "defaultValue": []
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-02-27T06:01:55Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
