@@ -1,0 +1,117 @@
+{
+    "name": "ds_adls_raw_tobronze",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "ls_adls_tar",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "fileName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                    "value": "@dataset().fileName",
+                    "type": "Expression"
+                },
+                "fileSystem": "raw"
+            },
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
+        },
+        "schema": [
+            {
+                "name": "VBELN",
+                "type": "String"
+            },
+            {
+                "name": "FKART",
+                "type": "String"
+            },
+            {
+                "name": "WAERK",
+                "type": "String"
+            },
+            {
+                "name": "VKORG",
+                "type": "String"
+            },
+            {
+                "name": "VTWEG",
+                "type": "String"
+            },
+            {
+                "name": "SPART",
+                "type": "String"
+            },
+            {
+                "name": "KNUMV",
+                "type": "String"
+            },
+            {
+                "name": "VGBEL",
+                "type": "String"
+            },
+            {
+                "name": "KUNRG",
+                "type": "String"
+            },
+            {
+                "name": "KUNAG",
+                "type": "String"
+            },
+            {
+                "name": "FKDAT",
+                "type": "String"
+            },
+            {
+                "name": "BUDAT",
+                "type": "String"
+            },
+            {
+                "name": "NETWR",
+                "type": "String"
+            },
+            {
+                "name": "ZLSCH",
+                "type": "String"
+            },
+            {
+                "name": "ZTERM",
+                "type": "String"
+            },
+            {
+                "name": "KDGRP",
+                "type": "String"
+            },
+            {
+                "name": "BZIRK",
+                "type": "String"
+            },
+            {
+                "name": "PLTYP",
+                "type": "String"
+            },
+            {
+                "name": "INCO1",
+                "type": "String"
+            },
+            {
+                "name": "INCO2",
+                "type": "String"
+            },
+            {
+                "name": "LAST_UPDATED",
+                "type": "String"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}
