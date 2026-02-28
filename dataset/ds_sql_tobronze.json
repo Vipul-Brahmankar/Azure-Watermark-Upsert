@@ -1,0 +1,31 @@
+{
+    "name": "ds_sql_tobronze",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "ls_sql_bronze",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "tableName": {
+                "type": "string"
+            },
+            "schemaName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "AzureSqlTable",
+        "schema": [],
+        "typeProperties": {
+            "schema": {
+                "value": "@dataset().schemaName",
+                "type": "Expression"
+            },
+            "table": {
+                "value": "@substring(dataset().tableName, 0, lastIndexOf(dataset().tableName, '.'))",
+                "type": "Expression"
+            }
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}
