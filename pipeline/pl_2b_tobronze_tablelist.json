@@ -1,0 +1,52 @@
+{
+    "name": "pl_2b_tobronze_tablelist",
+    "properties": {
+        "activities": [
+            {
+                "name": "Exec_toBronze",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "pl_2a_tobronze_vbrk",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "TableList": {
+                            "value": "@pipeline().parameters.TableList",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "TableList": {
+                "type": "array",
+                "defaultValue": [
+                    {
+                        "tableName": "MARA.csv",
+                        "tableSchemaName": "dbo"
+                    },
+                    {
+                        "tableName": "VBRK.csv",
+                        "tableSchemaName": "dbo"
+                    }
+                ]
+            }
+        },
+        "variables": {
+            "p2": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-02-27T05:37:03Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
