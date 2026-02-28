@@ -1,0 +1,246 @@
+{
+    "name": "pl_2a_tobronze_vbrk",
+    "properties": {
+        "activities": [
+            {
+                "name": "iter_tobronze",
+                "type": "ForEach",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@array(pipeline().parameters.TableList)",
+                        "type": "Expression"
+                    },
+                    "isSequential": false,
+                    "batchCount": 5,
+                    "activities": [
+                        {
+                            "name": "TableList2_app",
+                            "type": "AppendVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "decide_srcDataset",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "TableList2",
+                                "value": {
+                                    "value": "@item()",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "decide_srcDataset",
+                            "type": "IfCondition",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@equals(pipeline()?.TriggeredByPipelineName, 'pl_1_ingest_vbrk_toraw')",
+                                    "type": "Expression"
+                                },
+                                "ifFalseActivities": [
+                                    {
+                                        "name": "copy_toBronze2",
+                                        "type": "Copy",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "DelimitedTextSource",
+                                                "storeSettings": {
+                                                    "type": "AzureBlobFSReadSettings",
+                                                    "recursive": true,
+                                                    "enablePartitionDiscovery": false
+                                                },
+                                                "formatSettings": {
+                                                    "type": "DelimitedTextReadSettings"
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "AzureSqlSink",
+                                                "preCopyScript": "TRUNCATE TABLE [@{item().tableSchemaName}].[@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}]",
+                                                "writeBehavior": "insert",
+                                                "sqlWriterUseTableLock": false,
+                                                "disableMetricsCollection": false
+                                            },
+                                            "enableStaging": false,
+                                            "translator": {
+                                                "type": "TabularTranslator",
+                                                "typeConversion": true,
+                                                "typeConversionSettings": {
+                                                    "allowDataTruncation": true,
+                                                    "treatBooleanAsNumber": false
+                                                }
+                                            }
+                                        },
+                                        "inputs": [
+                                            {
+                                                "referenceName": "ds_adls_src_tobronze",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "fileName": {
+                                                        "value": "@item().tableName",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "outputs": [
+                                            {
+                                                "referenceName": "ds_sql_tobronze",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "tableName": {
+                                                        "value": "@item().tableName",
+                                                        "type": "Expression"
+                                                    },
+                                                    "schemaName": {
+                                                        "value": "@item().tableSchemaName",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "copy_toBronze1",
+                                        "type": "Copy",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "userProperties": [],
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "DelimitedTextSource",
+                                                "storeSettings": {
+                                                    "type": "AzureBlobFSReadSettings",
+                                                    "recursive": true,
+                                                    "enablePartitionDiscovery": false
+                                                },
+                                                "formatSettings": {
+                                                    "type": "DelimitedTextReadSettings"
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "AzureSqlSink",
+                                                "preCopyScript": "TRUNCATE TABLE [@{item().tableSchemaName}].[@{substring(item().tableName, 0, lastIndexOf(item().tableName, '.'))}]",
+                                                "writeBehavior": "insert",
+                                                "sqlWriterUseTableLock": false,
+                                                "disableMetricsCollection": false
+                                            },
+                                            "enableStaging": false,
+                                            "translator": {
+                                                "type": "TabularTranslator",
+                                                "typeConversion": true,
+                                                "typeConversionSettings": {
+                                                    "allowDataTruncation": true,
+                                                    "treatBooleanAsNumber": false
+                                                }
+                                            }
+                                        },
+                                        "inputs": [
+                                            {
+                                                "referenceName": "ds_adls_raw_tobronze",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "fileName": {
+                                                        "value": "@item().tableName",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "outputs": [
+                                            {
+                                                "referenceName": "ds_sql_tobronze",
+                                                "type": "DatasetReference",
+                                                "parameters": {
+                                                    "tableName": {
+                                                        "value": "@item().tableName",
+                                                        "type": "Expression"
+                                                    },
+                                                    "schemaName": {
+                                                        "value": "@item().tableSchemaName",
+                                                        "type": "Expression"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "Exec_toSilver",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "iter_tobronze",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "pl_3_tosilver",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "TableList2": {
+                            "value": "@variables('TableList2')",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "TableList": {
+                "type": "array",
+                "defaultValue": []
+            },
+            "TableList2": {
+                "type": "array",
+                "defaultValue": []
+            }
+        },
+        "variables": {
+            "TableList2": {
+                "type": "Array"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-02-27T05:52:34Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}
